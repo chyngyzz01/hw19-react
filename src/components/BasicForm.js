@@ -1,91 +1,85 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const BasicForm = (props) => {
-	let isRenderedOnce = false;
+	const [inputValue, setInputValue] = useState({
+		firstName: '',
+		lastName: '',
+		email: '',
+	});
+	const [firstInputValid, setFirstInputValid] = useState(true);
+	const [secondInputValid, setSecondInputValid] = useState(true);
+	const [emailInputValid, setEmailInputValid] = useState(true);
+	const [isFormValid, setIsFormValid] = useState(false);
 
-	const firstNameInputRef = useRef();
-	const lastNameInputRef = useRef();
-	const emailInputRef = useRef();
-	const [isFirstNameValid, setIsFirstNameValid] = useState(true);
-	const [isLastNameValid, setIsLastNameValid] = useState(true);
-	const [isEmailValid, setIsEmailValid] = useState(true);
-	const [isTouched, setIsTouched] = useState(true);
-
-	const firstNameInputBlurHandler = () => {
-		const firstName = firstNameInputRef.current.value;
-		if (firstName.trim().length > 4) {
-			setIsFirstNameValid(true);
+	const firstNameBlurHandler = () => {
+		setFirstInputValid(true);
+		if (inputValue.firstName.trim().length > 4) {
+			setFirstInputValid(true);
 			return;
 		}
-		setIsFirstNameValid(false);
+		setFirstInputValid(false);
 	};
-
-	const lastNameHandlerBlur = () => {
-		const lastName = lastNameInputRef.current.value;
-		if (lastName.trim().length > 6) {
-			setIsLastNameValid(true);
+	const lastNameBlurHandler = () => {
+		setSecondInputValid(true);
+		if (inputValue.lastName.trim().length > 5) {
+			setSecondInputValid(true);
 			return;
 		}
-		setIsLastNameValid(false);
+		setSecondInputValid(false);
 	};
-
-	const emailHandlerBlur = () => {
-		const email = emailInputRef.current.value;
-		if (email.trim().includes('@')) {
-			setIsEmailValid(true);
+	const emailBlurHandler = () => {
+		setEmailInputValid(true);
+		if (inputValue.email.trim().includes('@')) {
+			setEmailInputValid(true);
 			return;
 		}
-		setIsEmailValid(false);
+		setEmailInputValid(false);
 	};
-
-	console.log(isTouched);
-
-	console.log('isFirstNameValid:', isFirstNameValid);
 
 	useEffect(() => {
-		if (!isRenderedOnce) {
-			isRenderedOnce = true;
-			return null;
+		if (inputValue.firstName && inputValue.lastName && inputValue.email) {
+			setIsFormValid(true)
+			return
 		}
-		if (isRenderedOnce) {
-			if (isFirstNameValid && isLastNameValid && isEmailValid) {
-				setIsTouched(false);
-			} else {
-				setIsTouched(true);
-			}
-		}
-	}, [isFirstNameValid, isLastNameValid, isEmailValid, isRenderedOnce]);
+		setIsFormValid(false)
+	})
 
 	const submitHandler = (event) => {
 		event.preventDefault();
-		setIsFirstNameValid(true);
-		setIsLastNameValid(true);
-		setIsEmailValid(true);
+		setInputValue({
+			firstName: '',
+			lastName: '',
+			email: '',
+		});
 	};
 
-	const firstInputClasses = isFirstNameValid
-		? 'form-control'
-		: 'form-control invalid';
-
-	const secondInputClasses = isLastNameValid
-		? 'form-control'
-		: 'form-control invalid';
-	const emailInputClasses = isEmailValid
-		? 'form-control'
-		: 'form-control invalid';
-
+	const firstInputClasses = !firstInputValid
+		? 'form-control invalid'
+		: 'form-control';
+	const secondInputClasses = !secondInputValid
+		? 'form-control invalid'
+		: 'form-control';
+	const emailInputClasses = !emailInputValid
+		? 'form-control invalid'
+		: 'form-control';
 	return (
 		<form onSubmit={submitHandler}>
 			<div className='control-group'>
 				<div className={firstInputClasses}>
 					<label htmlFor='fistName'>First Name</label>
 					<input
-						ref={firstNameInputRef}
-						onBlur={firstNameInputBlurHandler}
 						type='text'
 						id='fistName'
+						onChange={(e) =>
+							setInputValue({
+								...inputValue,
+								firstName: e.target.value,
+							})
+						}
+						onBlur={firstNameBlurHandler}
 					/>
-					{!isFirstNameValid && (
+
+					{!firstInputValid && (
 						<p className='error-text'>
 							Length must be greater than 4
 						</p>
@@ -94,12 +88,17 @@ const BasicForm = (props) => {
 				<div className={secondInputClasses}>
 					<label htmlFor='lastName'>Last Name</label>
 					<input
-						ref={lastNameInputRef}
-						onBlur={lastNameHandlerBlur}
 						type='text'
 						id='lastName'
+						onChange={(e) =>
+							setInputValue({
+								...inputValue,
+								lastName: e.target.value,
+							})
+						}
+						onBlur={lastNameBlurHandler}
 					/>
-					{!isLastNameValid && (
+					{!secondInputValid && (
 						<p className='error-text'>
 							Length must be greater than 5
 						</p>
@@ -109,17 +108,19 @@ const BasicForm = (props) => {
 			<div className={emailInputClasses}>
 				<label htmlFor='email'>E-Mail Address</label>
 				<input
-					ref={emailInputRef}
-					onBlur={emailHandlerBlur}
 					type='email'
 					id='email'
+					onChange={(e) =>
+						setInputValue({ ...inputValue, email: e.target.value })
+					}
+					onBlur={emailBlurHandler}
 				/>
-				{!isEmailValid && (
+				{!emailInputValid && (
 					<p className='error-text'>Wrong login!!! (Must be @)</p>
 				)}
 			</div>
 			<div className='form-actions'>
-				<button disabled={isTouched}>Submit</button>
+				<button disabled={!isFormValid}>Submit</button>
 			</div>
 		</form>
 	);
